@@ -6,7 +6,7 @@ const path = require("path");
 
 const PORT = process.env.PORT || 8080;
 
-const db = require("./models/indexmodel");
+const db = require("./models");
 
 const app = express();
 
@@ -19,44 +19,33 @@ app.use(express.static('public'));
 
 mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost/populate", { useNewUrlParser: true});
 
-db.Workout.create({ name: "workout"})
-.then(dbWorkout => {
-    console.log(dbWorkout);
-})
-.catch(({message}) => {
-    console.log(message);
-});
-
 app.get("/exercise", (req, res) => {
     res.sendFile(path.join(__dirname, "./public/exercise.html"));
 })
+app.get("/stats", (req, res) => {
+    res.sendFile(path.join(__dirname, "./public/stats.html"))
+})
 
 
-app.get("/api/workouts", (req, res) => {
+app.get('/api/workouts', (req, res) => {
     db.Workout.find({})
-    .then(dbLibrary => {
-        res.json(dbLibrary);
+    .populate('exercise')
+    .then(dbWorkout => {
+        res.json(dbWorkout)
     })
     .catch(err => {
-        res.json(err)
+        res.json(err);
     })
-});
-// app.get("/api/workouts", (req, res) => {
-//     db.Workout.find({})
-//     .populate("name")
-//     .then(dbLibrary => {
-//         res.json(dbLibrary);
-//     })
-//     .catch(err => {
-//         res.json(err)
-//     })
-// });
+})
+
+
 app.get("/api/workouts/:id", (req, res) => {
     db.Workout.findById({
         
             _id: mongojs.ObjectId(req.params.id)    
         
     })
+    .populate("exercise")
     .then(dbLibrary => {
         res.json(dbLibrary);
     })
@@ -65,35 +54,27 @@ app.get("/api/workouts/:id", (req, res) => {
     })
 });
 
-app.post("/api/workouts/:id", (req, res) => {
-    db.Workout.create(
-        {
-            _id: mongojs.ObjectId(req.params.id)    
-        },
-        {
-            $set: {
-                type: req.body.type,
-                name: req.body.name,
-                duration: req.body.duration,
-                weight: req.body.weight,
-                reps: req.body.reps,
-                sets: req.body.sets
-
-            }
-        },
-        (error, data) => {
-            if(error){
-                res.send(error)
-            }else{
-                res.send(data)
-            }
-        }
-    );
+app.post("/api/workouts/", ({body}, res) => {
+    db.Exercise.create(body)
+    .then(({_id}) => db.Workout.findOneAndUpdate({}, {$push: {exercise: _id}}, {new: true}))
+    .then(dbUser => {
+        res.json(dbUser);
+    })
+    .catch(err => {
+        res.json(err);
+    })
 });
 
-
-
-
+app.put("/api/workouts/:id", ({body}, res) => {
+    db.Exercise.create(body)
+    .then(({_id}) => db.Workout.findOneAndUpdate({_id: mongojs.ObjectId.Workout._id}, {$push: {exercise: _id}}, {new: true}))
+    .then(dbUser => {
+        res.json(dbUser);
+    })
+    .catch(err => {
+        res.json(err);
+    })
+})
 
 
 app.listen(PORT, () => {
