@@ -7,8 +7,18 @@ const API = {
       console.log(err)
     }
     const json = await res.json();
-
-    return json[json.length - 1];
+    console.log("json: ", json[json.length-1])
+    var lastWorkout = json[json.length - 1];
+    var totalDuration = 0;
+    for(i = 0; i<lastWorkout.exercise.length; i++){
+     
+      var currentExercise = lastWorkout.exercise[i];
+      totalDuration += currentExercise.duration;
+      
+    };
+    lastWorkout.totalDuration = totalDuration; 
+    return lastWorkout;
+  
   },
   async addExercise(data) {
     const id = location.search.split("=")[1];

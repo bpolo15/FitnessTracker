@@ -37,6 +37,15 @@ app.get('/api/workouts', (req, res) => {
         res.json(err);
     })
 })
+app.get("/api/exercise", (req, res) => {
+    db.Exercise.find({})
+    .then(dbExercise => {
+        res.json(dbExercise)
+    })
+    .catch(err => {
+        res.json(err)
+    })
+})
 
 
 app.get("/api/workouts/:id", (req, res) => {
@@ -54,9 +63,8 @@ app.get("/api/workouts/:id", (req, res) => {
     })
 });
 
-app.post("/api/workouts/", ({body}, res) => {
+app.post("/exercise", ({body}, res) => {
     db.Exercise.create(body)
-    .then(({_id}) => db.Workout.findOneAndUpdate({}, {$push: {exercise: _id}}, {new: true}))
     .then(dbUser => {
         res.json(dbUser);
     })
@@ -65,9 +73,22 @@ app.post("/api/workouts/", ({body}, res) => {
     })
 });
 
-app.put("/api/workouts/:id", ({body}, res) => {
-    db.Exercise.create(body)
-    .then(({_id}) => db.Workout.findOneAndUpdate({_id: mongojs.ObjectId.Workout._id}, {$push: {exercise: _id}}, {new: true}))
+  // .then(({_id}) => db.Workout.findOneAndUpdate({}, {$push: {exercise: _id}}, {new: true}))
+app.post("/api/workouts/", ({body}, res) => {
+    db.Workout.create(body)
+  
+    .then(dbWorkout => {
+        res.json(dbWorkout)
+    })
+    .catch(err => {
+        res.json(err);
+    })
+});
+
+app.put("/api/workouts/:id", (req, res) => {
+    console.log(req.body);
+    db.Exercise.create(req.body)
+    .then(({_id}) => db.Workout.findOneAndUpdate({_id: mongoose.Types.ObjectId(req.params.id) }, {$push: {exercise: _id}}, {new: true}))
     .then(dbUser => {
         res.json(dbUser);
     })

@@ -7,12 +7,19 @@ const UserSchema = new Schema ({
         type: String,
         unique: true
     },
+    date: {
+        type: Date, 
+        required: true, 
+        default: Date.now
+
+    },
     exercise: [
         {
             type: Schema.Types.ObjectId,
             ref: "Exercise"
         }
     ]
+   
 });
 
 const Workout = mongoose.model("Workout", UserSchema);
